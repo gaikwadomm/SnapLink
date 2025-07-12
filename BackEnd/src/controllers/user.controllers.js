@@ -4,14 +4,14 @@ import { User } from "../models/user.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
-const generateAccessAndRefreshToken = asyncHandler(async (userId)=>{
+const generateAccessAndRefreshToken = async (userId) => {
   try {
-    const user = await User.findById(userId)
-    if(!user) {
+    const user = await User.findById(userId);
+    if (!user) {
       throw new ApiError(404, "User not found");
     }
     const accessToken = user.generateAccessToken();
-    const refreshToken = user.generateRefreshToken()
+    const refreshToken = user.generateRefreshToken();
     user.refreshToken = refreshToken;
     // Saving the refreshToken to the user document.
     // Since only refreshToken is being updated, you can use validateBeforeSave: false for performance,
@@ -22,7 +22,7 @@ const generateAccessAndRefreshToken = asyncHandler(async (userId)=>{
   } catch (error) {
     throw new ApiError(500, "Error generating tokens");
   }
-})
+};
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
@@ -53,7 +53,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     };
 
     const { accessToken, refreshToken: newRefereshToken } =
-      await generateAccessAndRefereshToken(user._id);
+      await generateAccessAndRefreshToken(user._id);
 
     return res
       .status(200)
@@ -74,41 +74,56 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-const loginUser  = asyncHandler(async (req, res)=>{
-  const {username, email, password} = req.body
+const loginUser = asyncHandler(async (req, res) => {
+  const { username, email, password } = req.body;
 
-  if(!email) {
+  if (!email) {
     throw new ApiError(400, "Email is required");
   }
 
   const user = await User.findOne({
-    $or: [{username}, {email}]
-  })
+    $or: [{ username }, { email }],
+  });
 
-  if(!user) {
-    throw new ApiError(404, "User not found");  
+  if (!user) {
+    throw new ApiError(404, "User not found");
   }
 
-  const isPasswordValid = await user.isPasswordCorrect(password)
+  const isPasswordValid = await user.isPasswordCorrect(password);
 
-  if(!isPasswordValid) {
-    throw new ApiError(401, "Invalid Credintials");  
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Invalid Credintials");
   }
 
   const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
     user._id
   );
 
-    const loggedInUser = await User.findById(user._id).select(
-      "-password -refreshToken"
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
+
+  if (!loggedInUser) {
+    throw new ApiError(500, "Something went wrong while logging in");
+  }
+
+  const options = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggedInUser, accessToken, refreshToken },
+        "User logged in successfully..."
+      )
     );
-
-    if (!loggedInUser) {
-      throw new ApiError(500, "Something went wrong while logging in");
-    }
-
-
-})
+});
 
 const registerUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
@@ -139,19 +154,17 @@ const registerUser = asyncHandler(async (req, res) => {
       throw new ApiError(500, "Something went wrong while registering a user");
     }
 
-    return res  
-            .status(200)
-            .json(new ApiResponse(200, createUser, "User register successfully..."))
+    return res
+      .status(200)
+      .json(new ApiResponse(200, createUser, "User register successfully..."));
   } catch (err) {
-        console.log("User creation failed");
-    throw new ApiError(
-      500,
-      "Something went wrong while registering a user..."
-    );
+    console.log("User creation failed");
+    throw new ApiError(500, "Something went wrong while registering a user...");
   }
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
+  // console.log("logout begins")
   await User.findByIdAndUpdate(
     //TODO : need to come back here after middleware
     req.user._id,
@@ -175,28 +188,29 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User logged out successfully..."));
 });
 
-const changeCurrentPassword = asyncHandler(async (req,res)=>{
+const changeCurrentPassword = asyncHandler(async (req, res) => {
   try {
-    const {oldPassword, newPassword} = req.body
-    const user = User.findById(req.user?._id)
+    const { oldPassword, newPassword } = req.body;
+    const user = await User.findById(req.user?._id);
+    console.log("The user is ", user.username)
 
-    const isPasswordValid = await user.isPasswordCorrect(oldPassword)
+    const isPasswordValid = await user.isPasswordCorrect(oldPassword);
 
-    if(!isPasswordValid){
-      throw new ApiError(401, "Old password is incorrect")
+    if (!isPasswordValid) {
+      throw new ApiError(401, "Old password is incorrect");
     }
 
-    user.password = newPassword
+    user.password = newPassword;
 
-    await user.save({validateBeforeSave: false})
+    await user.save({ validateBeforeSave: false });
 
     return res
-            .status(200)
-            .json(new ApiResponse(200, {}, "Password changed Successfully..."))
+      .status(200)
+      .json(new ApiResponse(200, {}, "Password changed Successfully..."));
   } catch (error) {
-    throw new ApiError(500, "Something went wrong while changing password")
+    throw new ApiError(500, error.message || "Something went wrong while changing password");
   }
-})
+});
 
 export {
   loginUser,

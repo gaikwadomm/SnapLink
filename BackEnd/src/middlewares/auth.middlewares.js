@@ -21,6 +21,7 @@ export const verifyJWT = asyncHandler(async (req, _, next)=>{
 
         console.log("Done with user verification")
         req.user = user;
+        next()
     } catch (error) {
         throw new ApiError(401, error?.message || "You are not authorized to access this resource")
     }
