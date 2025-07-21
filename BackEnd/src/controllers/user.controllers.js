@@ -75,14 +75,14 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  const { username, email, password } = req.body;
+  const {email, password } = req.body;
 
   if (!email) {
     throw new ApiError(400, "Email is required");
   }
 
   const user = await User.findOne({
-    $or: [{ username }, { email }],
+    $or: [{ email }],
   });
 
   if (!user) {
@@ -211,6 +211,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     throw new ApiError(500, error.message || "Something went wrong while changing password");
   }
 });
+
 
 export {
   loginUser,

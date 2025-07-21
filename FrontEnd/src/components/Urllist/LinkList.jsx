@@ -1,33 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
-const dummyLinks = [
-  {
-    id: 1,
-    title: "Snaplink Docs",
-    url: "https://snaplink.app/docs",
-    tags: ["Docs", "Bookmarking", "UX"],
-    notes: "This is our reference for backend APIs",
-  },
-  {
-    id: 2,
-    title: "Tailwind UI Components",
-    url: "https://tailwindui.com/components",
-    tags: ["Tailwind", "Design", "React"],
-    notes: "",
-  },
-  {
-    id: 3,
-    title: "Browsing ",
-    url: "https://google.com",
-    tags: ["Search", "Google", "Productivity"],
-    notes: " Use this for quick searches",
-  },
-];
+// const userLinks = await axios.get("/api/v1/links/saved-links");
 
 export default function LinkList() {
   const [copiedId, setCopiedId] = useState(null);
   const [showTags, setShowTags] = useState(false);
+  const [userLinks, setLinks] = useState([]);
+useEffect(() => {
+  const fetchLinks = async () => {
+    try {
+      const res = await axios.get("/api/v1/links/saved-links");
+      setLinks(res.data.data);
+    } catch (err) {
+      console.error("Error fetching links:", err);
+    }
+  };
 
+  // Initial fetch
+  fetchLinks();
+
+  // Poll every 5 seconds
+  const interval = setInterval(fetchLinks(), 3000);
+
+  return () => clearInterval(interval); // cleanup on unmount
+}, []);
+  
   const handleCopy = (url, id) => {
     navigator.clipboard.writeText(url);
     setCopiedId(id);
@@ -48,7 +46,7 @@ export default function LinkList() {
       </button>
 
       <div className="space-y-6 mt-6">
-        {dummyLinks.map((link) => (
+        {userLinks.map((link) => (
           <div
             key={link.id}
             className="bg-neutral-900 border border-neutral-700 rounded-lg p-5 relative group transition hover:border-blue-500"
@@ -98,7 +96,7 @@ export default function LinkList() {
 
             {/* URL – visible on mobile, hover-reveal on desktop */}
             <p className="inline-block text-sm mt-1 text-gray-400 bg-neutral-700 px-3 py-0.5 rounded border border-neutral-600">
-              <a href={link.url}>{link.url}</a>
+              <a href={link.decryptedUrl}>{link.decryptedUrl}</a>
             </p>
 
             {/* Copied feedback */}

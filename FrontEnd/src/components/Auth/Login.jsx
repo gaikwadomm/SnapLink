@@ -16,18 +16,18 @@ export default function Login() {
   const onLogin = async () => {
     try {
       setLoading(true);
-      const response = await axios.post("/api/v1/users/register", user);
-      toast.success("Signup successful! Redirecting to login page...");
+      const response = await axios.post("/api/v1/users/login", user);
+      toast.success("Login successful!...");
       console.log("Signup response:", response.data);
       setTimeout(() => {
-        navigate("/auth");
-      }, 2000);
+        navigate("/UserLinks");
+      }, 1000);
     } catch (error) {
-      toast.error("An error occurred while signing up.");
+      toast.error("An error occurred while login...");
       if (error instanceof Error) {
-        console.error("Signup error:", error.message);
+        console.error("Login error:", error.message);
       } else {
-        console.error("Signup error:", error);
+        console.error("Login error:", error);
       }
     } finally {
       setLoading(false);
@@ -35,8 +35,8 @@ export default function Login() {
   };
 
   useEffect(() => {
-    const { email, password, username } = user;
-    setButtonDisabled(!(email && password && username));
+    const { email, password } = user;
+    setButtonDisabled(!(email && password));
   }, [user]);
 
   return (
@@ -57,7 +57,16 @@ export default function Login() {
           {loading ? "Processing..." : "Login to your account"}
         </h2>
 
-        <form className="space-y-4">
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!buttonDisabled) {
+              onLogin();
+            }
+          }}
+        >
+          <Toaster position="top-center" reverseOrder={false} />
           <input
             id="email"
             type="email"
@@ -88,7 +97,6 @@ export default function Login() {
 
           <button
             type="submit"
-            onClick={onLogin}
             disabled={buttonDisabled}
             className="w-full py-3 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-yellow-500 hover:to-amber-600 transition"
           >
