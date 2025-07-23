@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import socket from "../../socket";
 
 // const userLinks = await axios.get("/api/v1/links/saved-links");
 
@@ -7,25 +8,30 @@ export default function LinkList() {
   const [copiedId, setCopiedId] = useState(null);
   const [showTags, setShowTags] = useState(false);
   const [userLinks, setLinks] = useState([]);
-useEffect(() => {
-  const fetchLinks = async () => {
-    try {
-      const res = await axios.get("/api/v1/links/saved-links");
-      setLinks(res.data.data);
-    } catch (err) {
-      console.error("Error fetching links:", err);
-    }
-  };
 
-  // Initial fetch
-  fetchLinks();
+  // Fetch links from the server
+  useEffect(() => {
+    const fetchLinks = async () => {
+      try {
+        const res = await axios.get("/api/v1/links/saved-links");
+        setLinks(res.data.data);
+      } catch (err) {
+        console.error("Error fetching links:", err);
+      }
+    };
 
-  // Poll every 5 seconds
-  const interval = setInterval(fetchLinks(), 3000);
+    // Initial fetch
+    fetchLinks();
 
-  return () => clearInterval(interval); // cleanup on unmount
-}, []);
-  
+    // Socket.IO listener for real-time updates
+    socket.on("links-changed", fetchLinks);
+
+    // Cleanup on unmount
+    return () => {
+      socket.off("links-changed", fetchLinks);
+    };
+  }, []);
+
   const handleCopy = (url, id) => {
     navigator.clipboard.writeText(url);
     setCopiedId(id);

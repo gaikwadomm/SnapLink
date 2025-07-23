@@ -33,7 +33,7 @@ const linkSchema = new Schema(
     urlLink: {
       // keep required
       type: String,
-      required: true,
+      // required: true,
     },
     tags: {
       type: [String],
@@ -69,7 +69,7 @@ linkSchema.pre("save", function (next) {
   this.encryptedUrl = encrypted;
   this.iv = iv.toString("hex");
   // Remove urlLink so it won't be saved, or overwrite it with an empty string (to satisfy 'required')
-  this.urlLink = ""; // To mute validation. Optional: remove 'required' from urlLink if you only store encryptedUrl!
+  this.urlLink = undefined; // To mute validation. Optional: remove 'required' from urlLink if you only store encryptedUrl!
   next();
 });
 
