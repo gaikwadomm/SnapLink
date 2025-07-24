@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, useState, createContext, useContext } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import {
@@ -18,17 +18,48 @@ import {
   Navigate,
 } from "react-router";
 
-function DashboardLayout() {
-  return (
-    <div className="min-h-screen bg-neutral-900 text-white">
-      {/* ✅ This is shown on all /dashboard/* pages */}
-      <Filterurl />
+// Create context for sharing filter state
+const FilterContext = createContext();
 
-      {/* ✅ This is the body that changes: LinkList, Addurl, etc */}
-      <div className="p-4">
-        <Outlet />
+export const useFilter = () => {
+  const context = useContext(FilterContext);
+  if (!context) {
+    throw new Error("useFilter must be used within FilterProvider");
+  }
+  return context;
+};
+
+function DashboardLayout() {
+  const [currentSort, setCurrentSort] = useState("none");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSortChange = (sortType) => {
+    setCurrentSort(sortType);
+  };
+
+  const handleSearchChange = (term) => {
+    setSearchTerm(term);
+  };
+
+  return (
+    <FilterContext.Provider
+      value={{ currentSort, handleSortChange, searchTerm, handleSearchChange }}
+    >
+      <div className="min-h-screen bg-neutral-900 text-white">
+        {/* ✅ This is shown on all /dashboard/* pages */}
+        <Filterurl
+          onSortChange={handleSortChange}
+          currentSort={currentSort}
+          onSearchChange={handleSearchChange}
+          searchTerm={searchTerm}
+        />
+
+        {/* ✅ This is the body that changes: LinkList, Addurl, etc */}
+        <div className="p-4">
+          <Outlet />
+        </div>
       </div>
-    </div>
+    </FilterContext.Provider>
   );
 }
 

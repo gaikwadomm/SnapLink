@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Addurl } from "../index.js";
+import { useFilter } from "../../main.jsx";
 import socket from "../../socket";
 
 // const userLinks = await axios.get("/api/v1/links/saved-links");
 
 export default function LinkList() {
+  const { currentSort, searchTerm } = useFilter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
   const [showTags, setShowTags] = useState(false);
@@ -14,13 +16,44 @@ export default function LinkList() {
   const [currentPage, setCurrentPage] = useState(1);
   const linksPerPage = 7; // Adjust as needed
 
+  // Filter links based on search term
+  const filteredLinks = userLinks.filter((link) => {
+    if (!searchTerm.trim()) return true;
+
+    const searchLower = searchTerm.toLowerCase();
+    const titleMatch = link.title?.toLowerCase().includes(searchLower) || false;
+    const urlMatch =
+      link.decryptedUrl?.toLowerCase().includes(searchLower) || false;
+    const tagsMatch =
+      typeof link.tags === "string"
+        ? link.tags.toLowerCase().includes(searchLower)
+        : false;
+    const notesMatch = link.notes?.toLowerCase().includes(searchLower) || false;
+
+    return titleMatch || urlMatch || tagsMatch || notesMatch;
+  });
+
+  // Sort filtered links based on current sort option
+  const sortedLinks = [...filteredLinks].sort((a, b) => {
+    switch (currentSort) {
+      case "a-z":
+        return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
+      case "z-a":
+        return b.title.toLowerCase().localeCompare(a.title.toLowerCase());
+      case "date":
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      default:
+        return 0; // no sorting
+    }
+  });
+
   //slice visible links
   const startIdx = (currentPage - 1) * linksPerPage;
   const endIdx = startIdx + linksPerPage;
-  const paginatedLinks = userLinks.slice(startIdx, endIdx);
+  const paginatedLinks = sortedLinks.slice(startIdx, endIdx);
 
   //Total pages
-  const totalPages = Math.ceil(userLinks.length / linksPerPage);
+  const totalPages = Math.ceil(sortedLinks.length / linksPerPage);
 
   // Fetch links from the server
   useEffect(() => {
@@ -49,6 +82,16 @@ export default function LinkList() {
       socket.off("links-changed", fetchLinks);
     };
   }, []);
+
+  // Reset to first page when sorting changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [currentSort]);
+
+  // Reset to first page when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const handleCopy = (url, id) => {
     navigator.clipboard.writeText(url);
@@ -100,6 +143,19 @@ export default function LinkList() {
             <p className="text-gray-400 text-lg">No links saved yet.</p>
             <p className="text-gray-500 text-sm mt-2">
               Start by adding your first link!
+            </p>
+          </div>
+        ) : filteredLinks.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-400 text-lg">No links match your search.</p>
+            <p className="text-gray-500 text-sm mt-2">
+              Try searching with different terms or clear your search.
+            </p>
+          </div>
+        ) : sortedLinks.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-400 text-lg">
+              No links match the current filter.
             </p>
           </div>
         ) : (
