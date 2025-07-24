@@ -212,6 +212,19 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   }
 });
 
+const deleteAccount = asyncHandler(async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.user._id);
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "Account deleted successfully"));
+  } catch (error) {
+    throw new ApiError(500, error.message || "Something went wrong while deleting account");
+  }
+})
 
 export {
   loginUser,
@@ -219,4 +232,5 @@ export {
   logoutUser,
   changeCurrentPassword,
   refreshAccessToken,
+  deleteAccount,
 };

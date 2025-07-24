@@ -3,7 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import http from "http";
-
+import { errorHandler } from "./middlewares/error.middlewares.js";
 const app = express();
 
 // Create HTTP server
@@ -43,4 +43,6 @@ app.use("/api/healthcheck", healthCheckRoutes);
 app.use("/api/v1/users", userRouters);
 app.use("/api/v1/links", linkRouters);
 
+// Error handling middleware
+app.use(errorHandler)
 export { app, server, io };

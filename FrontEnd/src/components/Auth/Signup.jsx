@@ -12,7 +12,6 @@ export default function Signup() {
   });
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const [loading, setLoading] = useState(false);
-  
 
   const onSignup = async () => {
     try {
@@ -24,9 +23,11 @@ export default function Signup() {
         navigate("/login");
       }, 2000);
     } catch (error) {
-      toast.error("An error occurred while signing up.");
+      toast.error(
+        error.response.data.message || "An error occurred while signing up."
+      );
       if (error instanceof Error) {
-        console.error("Signup error:", error.message);
+        console.error("Signup error:", error);
       } else {
         console.error("Signup error:", error);
       }
@@ -42,7 +43,43 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-neutral-900 to-black text-white px-4">
-      <Toaster position="top-center" reverseOrder={false} />
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          style: {
+            background: "#23272a",
+            color: "#fff",
+            borderRadius: "8px",
+            border: "1px solid #FFD580",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+            fontSize: "1rem",
+            padding: "16px 24px",
+          },
+          success: {
+            iconTheme: {
+              primary: "#FFD580",
+              secondary: "#23272a",
+            },
+            style: {
+              border: "1px solid #FFD580",
+              background: "#23272a",
+              color: "#FFD580",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#ff4d4f",
+              secondary: "#23272a",
+            },
+            style: {
+              border: "1px solid #ff4d4f",
+              background: "#23272a",
+              color: "#ff4d4f",
+            },
+          },
+        }}
+      />
       {/* Header */}
       <header className="mb-6 text-center">
         <h1 className="text-4xl font-semibold text-white tracking-wide">
@@ -52,7 +89,6 @@ export default function Signup() {
           Save the links that matter — like your own personal bookmark vault.
         </p>
       </header>
-
       {/* Auth card */}
       <div className="w-full max-w-md bg-neutral-800 border border-neutral-700 rounded-xl shadow-lg p-8">
         <h2 className="text-2xl font-bold text-center mb-6">

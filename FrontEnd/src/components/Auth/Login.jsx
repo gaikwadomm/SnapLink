@@ -66,7 +66,43 @@ export default function Login() {
             }
           }}
         >
-          <Toaster position="top-center" reverseOrder={false} />
+          <Toaster
+            position="top-center"
+            reverseOrder={false}
+            toastOptions={{
+              style: {
+                background: "#23272a",
+                color: "#fff",
+                borderRadius: "8px",
+                border: "1px solid #FFD580",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+                fontSize: "1rem",
+                padding: "16px 24px",
+              },
+              success: {
+                iconTheme: {
+                  primary: "#FFD580",
+                  secondary: "#23272a",
+                },
+                style: {
+                  border: "1px solid #FFD580",
+                  background: "#23272a",
+                  color: "#FFD580",
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: "#ff4d4f",
+                  secondary: "#23272a",
+                },
+                style: {
+                  border: "1px solid #ff4d4f",
+                  background: "#23272a",
+                  color: "#ff4d4f",
+                },
+              },
+            }}
+          />{" "}
           <input
             id="email"
             type="email"
@@ -81,7 +117,6 @@ export default function Login() {
             placeholder="Password"
             className="w-full px-4 py-3 rounded-lg bg-neutral-900 text-white placeholder-gray-500 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
-
           <div className="flex items-center justify-between text-sm">
             <label className="flex items-center gap-2">
               <input
@@ -94,7 +129,6 @@ export default function Login() {
               Forgot Password?
             </a>
           </div>
-
           <button
             type="submit"
             disabled={buttonDisabled}

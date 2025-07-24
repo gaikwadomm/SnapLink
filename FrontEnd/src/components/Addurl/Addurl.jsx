@@ -1,12 +1,18 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
+import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
+import React from "react";
 
 export default function Addurl() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
-    url: "",
+    urlLink: "",
     tags: [""],
     notes: "",
   });
+  const [buttonDisabled, setButtonDisabled] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,11 +34,63 @@ export default function Addurl() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     // TODO: Send formData to backend via fetch/axios
-    console.log("Submitting:", formData);
+    //let start sending the data to the backend
+
+    if(buttonDisabled) return;
+    setButtonDisabled(true);
+
+    try {
+      console.log("Submitting:", formData);
+      const response = await axios.post("/api/v1/links/addUrl", formData);
+      console.log("Response:", response.data);
+      toast.success("Link added successfully!");
+      setTimeout(() => {
+        navigate("/UserLinks");
+      }, 1000);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
   };
 
   return (
     <div className="w-full max-w-md bg-neutral-800 border border-neutral-700 rounded-xl shadow-lg p-8 text-white">
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          style: {
+            background: "#23272a",
+            color: "#fff",
+            borderRadius: "8px",
+            border: "1px solid #FFD580",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+            fontSize: "1rem",
+            padding: "16px 24px",
+          },
+          success: {
+            iconTheme: {
+              primary: "#FFD580",
+              secondary: "#23272a",
+            },
+            style: {
+              border: "1px solid #FFD580",
+              background: "#23272a",
+              color: "#FFD580",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#ff4d4f",
+              secondary: "#23272a",
+            },
+            style: {
+              border: "1px solid #ff4d4f",
+              background: "#23272a",
+              color: "#ff4d4f",
+            },
+          },
+        }}
+      />
       <h2 className="text-xl font-semibold mb-6">Add a New Link</h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -48,8 +106,8 @@ export default function Addurl() {
 
         <input
           type="url"
-          name="url"
-          value={formData.url}
+          name="urlLink"
+          value={formData.urlLink}
           onChange={handleChange}
           placeholder="https://example.com"
           required
@@ -90,9 +148,16 @@ export default function Addurl() {
 
         <button
           type="submit"
-          className="w-full py-3 bg-gradient-to-r from-blue-500 to-amber-500 text-black rounded-lg font-bold shadow-md hover:from-blue-600 hover:to-amber-600 transition"
+          disabled={buttonDisabled}
+          className={`w-full py-3 rounded-lg font-bold shadow-md transition
+    ${
+      buttonDisabled
+        ? "bg-gray-500 cursor-not-allowed"
+        : "bg-gradient-to-r from-blue-500 to-amber-500 text-black hover:from-blue-600 hover:to-amber-600"
+    }
+  `}
         >
-          Save Link
+          {buttonDisabled ? "Saving..." : "Save Link"}
         </button>
       </form>
     </div>

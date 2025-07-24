@@ -5,6 +5,7 @@ import {
   registerUser,
   logoutUser,
   refreshAccessToken,
+  deleteAccount,
 } from "../controllers/user.controllers.js";
 import { verifyJWT } from "../middlewares/auth.middlewares.js";
 
@@ -16,6 +17,8 @@ router.route("/refresh-token").post(refreshAccessToken);
 
 router.route("/logout").post(verifyJWT, logoutUser)
 router.route("/change-password").post(verifyJWT, changeCurrentPassword)
+router.route("/delete-account").delete(verifyJWT, deleteAccount)
+
 
 export default router
 
