@@ -3,6 +3,10 @@ import axios from "axios";
 import { Addurl } from "../index.js";
 import { useFilter } from "../../main.jsx";
 import socket from "../../socket";
+import toast from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
+import Deleteurl from "../Deleteurl/Deleteurl.jsx";
+import Editurl from "../Editurl/Editurl.jsx";
 
 // const userLinks = await axios.get("/api/v1/links/saved-links");
 
@@ -12,6 +16,20 @@ export default function LinkList() {
   const [copiedId, setCopiedId] = useState(null);
   const [showTags, setShowTags] = useState(false);
   const [userLinks, setLinks] = useState([]);
+
+  // Delete confirmation modal state
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    linkId: null,
+    linkTitle: "",
+    isDeleting: false,
+  });
+
+  // Edit modal state
+  const [editModal, setEditModal] = useState({
+    isOpen: false,
+    linkData: null,
+  });
 
   const [currentPage, setCurrentPage] = useState(1);
   const linksPerPage = 7; // Adjust as needed
@@ -67,6 +85,21 @@ export default function LinkList() {
         setCurrentPage(1);
       } catch (err) {
         console.error("Error fetching links:", err);
+        //not authorized to access without login
+        if (err.response && err.response.status === 401) {
+          // Handle unauthorized access
+          console.log("User not authorized");
+          // Optionally, you can redirect to login or show a message
+          const token = localStorage.getItem("token");
+          toast.error(
+            token
+              ? `Invalid or expired token: ${token}`
+              : "You must be logged in to view links."
+          );
+          setTimeout(() => {
+            window.location.href = "/login"; // Redirect to login page
+          }, 1000);
+        }
         setLinks([]); // Set empty array on error
       }
     };
@@ -98,8 +131,131 @@ export default function LinkList() {
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
+
+  // Handle delete button click - open confirmation modal
+  const handleDeleteClick = (linkId, linkTitle) => {
+    setDeleteModal({
+      isOpen: true,
+      linkId: linkId,
+      linkTitle: linkTitle,
+      isDeleting: false,
+    });
+  };
+
+  // Handle delete confirmation
+  const handleDeleteConfirm = async () => {
+    setDeleteModal((prev) => ({ ...prev, isDeleting: true }));
+
+    try {
+      await axios.delete(`/api/v1/links/delete-link/${deleteModal.linkId}`);
+
+      // Update local state immediately
+      setLinks((prevLinks) =>
+        prevLinks.filter((link) => (link._id || link.id) !== deleteModal.linkId)
+      );
+
+      toast.success("Link deleted successfully!");
+
+      // Close modal
+      setDeleteModal({
+        isOpen: false,
+        linkId: null,
+        linkTitle: "",
+        isDeleting: false,
+      });
+    } catch (error) {
+      console.error("Error deleting link:", error);
+      toast.error(error.response?.data?.message || "Failed to delete link");
+      setDeleteModal((prev) => ({ ...prev, isDeleting: false }));
+    }
+  };
+
+  // Handle delete modal close
+  const handleDeleteClose = () => {
+    if (!deleteModal.isDeleting) {
+      setDeleteModal({
+        isOpen: false,
+        linkId: null,
+        linkTitle: "",
+        isDeleting: false,
+      });
+    }
+  };
+
+  // Handle edit button click - open edit modal
+  const handleEditClick = (linkData) => {
+    setEditModal({
+      isOpen: true,
+      linkData: linkData,
+    });
+  };
+
+  // Handle edit success - close modal and refresh data
+  const handleEditSuccess = () => {
+    setEditModal({
+      isOpen: false,
+      linkData: null,
+    });
+    // Refetch links to show updated data
+    const fetchLinks = async () => {
+      try {
+        const res = await axios.get("/api/v1/links/saved-links");
+        const linksData = Array.isArray(res.data.data) ? res.data.data : [];
+        setLinks(linksData);
+      } catch (err) {
+        console.error("Error fetching links:", err);
+      }
+    };
+    fetchLinks();
+  };
+
+  // Handle edit cancel - close modal
+  const handleEditCancel = () => {
+    setEditModal({
+      isOpen: false,
+      linkData: null,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-neutral-900 to-black text-white px-4 py-8">
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          style: {
+            background: "#23272a",
+            color: "#fff",
+            borderRadius: "8px",
+            border: "1px solid #FFD580",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+            fontSize: "1rem",
+            padding: "16px 24px",
+          },
+          success: {
+            iconTheme: {
+              primary: "#FFD580",
+              secondary: "#23272a",
+            },
+            style: {
+              border: "1px solid #FFD580",
+              background: "#23272a",
+              color: "#FFD580",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#ff4d4f",
+              secondary: "#23272a",
+            },
+            style: {
+              border: "1px solid #ff4d4f",
+              background: "#23272a",
+              color: "#ff4d4f",
+            },
+          },
+        }}
+      />
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl font-bold tracking-wide">Your Saved Links</h2>
 
@@ -180,12 +336,16 @@ export default function LinkList() {
                   <button
                     className="w-9 h-9 flex items-center justify-center rounded-full border-2 border-blue-500 text-blue-500 hover:bg-blue-600 hover:text-white transition"
                     title="Edit"
+                    onClick={() => handleEditClick(link)}
                   >
                     ✏️
                   </button>
                   <button
                     className="w-9 h-9 flex items-center justify-center rounded-full border-2 border-red-500 text-red-500 hover:bg-red-600 hover:text-white transition"
                     title="Delete"
+                    onClick={() =>
+                      handleDeleteClick(link._id || link.id, link.title)
+                    }
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -337,7 +497,7 @@ export default function LinkList() {
 
       {/* Modal for Add URL */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-opacity-5 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="bg-neutral-900 border border-neutral-700 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
             {/* Close button */}
             <button
@@ -363,6 +523,52 @@ export default function LinkList() {
             {/* Add URL component */}
             <div className="p-0">
               <Addurl onSuccess={() => setIsModalOpen(false)} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <Deleteurl
+        isOpen={deleteModal.isOpen}
+        onClose={handleDeleteClose}
+        onConfirm={handleDeleteConfirm}
+        linkTitle={deleteModal.linkTitle}
+        isDeleting={deleteModal.isDeleting}
+      />
+
+      {/* Edit Modal */}
+      {editModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-neutral-900 border border-neutral-700 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
+            {/* Close button */}
+            <button
+              onClick={handleEditCancel}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-neutral-800 hover:bg-neutral-700 text-gray-400 hover:text-white transition z-10"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            {/* Edit URL component */}
+            <div className="p-0">
+              <Editurl
+                linkData={editModal.linkData}
+                onSuccess={handleEditSuccess}
+                onCancel={handleEditCancel}
+              />
             </div>
           </div>
         </div>

@@ -62,7 +62,7 @@ export default function Filterurl({
         </svg>
         <input
           type="text"
-          placeholder="Search links by title, URL, tags, or notes..."
+          placeholder="Search links by title, URL, or notes..."
           value={searchTerm}
           onChange={handleSearchInput}
           className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-700 bg-gray-800 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition text-sm shadow-inner"

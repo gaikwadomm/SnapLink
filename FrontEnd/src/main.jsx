@@ -76,6 +76,7 @@ const router = createBrowserRouter(
       <Route path="/signup" element={<Signup />} />
 
       <Route path="/dashboard" element={<DashboardLayout />}>
+      
         <Route index element={<LinkList />} />
         <Route path="addurl" element={<Addurl />} />
       </Route>
