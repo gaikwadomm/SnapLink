@@ -22,7 +22,7 @@ export default function Addurl({ onSuccess, selectedCollection }) {
     const fetchCollections = async () => {
       try {
         setIsLoadingCollections(true);
-        const res = await axiosInstance.get("/api/v1/links/get-collections");
+        const res = await axiosInstance.get("/v1/links/get-collections");
         const collectionsData = Array.isArray(res.data.data)
           ? res.data.data
           : [];
@@ -89,7 +89,7 @@ export default function Addurl({ onSuccess, selectedCollection }) {
       }
 
       console.log("Submitting:", submitData);
-      const response = await axiosInstance.post("/api/v1/links/addUrl", submitData);
+      const response = await axiosInstance.post("/v1/links/addUrl", submitData);
       console.log("Response:", response.data);
       toast.success("Link added successfully!");
 

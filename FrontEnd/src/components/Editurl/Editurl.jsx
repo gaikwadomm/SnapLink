@@ -80,7 +80,7 @@ export default function Editurl({ linkData, onSuccess, onCancel }) {
 
       console.log("Updating link:", updateData);
       const response = await axiosInstance.patch(
-        `/api/v1/links/update-link/${linkData._id || linkData.id}`,
+        `/v1/links/update-link/${linkData._id || linkData.id}`,
         updateData
       );
       console.log("Response:", response.data);

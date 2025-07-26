@@ -16,7 +16,7 @@ export default function Signup() {
   const onSignup = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.post("/api/v1/users/register", user);
+      const response = await axiosInstance.post("/v1/users/register", user);
       toast.success("Signup successful! Redirecting to login page...");
       console.log("Signup response:", response.data);
       setTimeout(() => {

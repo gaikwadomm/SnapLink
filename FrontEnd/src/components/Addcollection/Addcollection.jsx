@@ -31,7 +31,7 @@ export default function Addcollection({ onSuccess, onCancel }) {
     try {
       console.log("Creating collection:", formData);
       const response = await axiosInstance.post(
-        "/api/v1/links/create-link-collection",
+        "/v1/links/create-link-collection",
         {
           name: formData.name.trim(),
           description: formData.description.trim() || "",

@@ -9,7 +9,7 @@ import Deleteurl from "../Deleteurl/Deleteurl.jsx";
 import Editurl from "../Editurl/Editurl.jsx";
 import CollectionList from "../CollectionList/CollectionList.jsx";
 
-// const userLinks = await axios.get("/api/v1/links/saved-links");
+// const userLinks = await axios.get("/v1/links/saved-links");
 
 export default function LinkList() {
   const { currentSort, searchTerm } = useFilter();
@@ -89,7 +89,7 @@ export default function LinkList() {
   useEffect(() => {
     const fetchLinks = async () => {
       try {
-        const res = await axiosInstance.get("/api/v1/links/saved-links");
+        const res = await axiosInstance.get("/v1/links/saved-links");
         // Ensure we're setting an array
         const linksData = Array.isArray(res.data.data) ? res.data.data : [];
         setLinks(linksData);
@@ -159,7 +159,7 @@ export default function LinkList() {
     setDeleteModal((prev) => ({ ...prev, isDeleting: true }));
 
     try {
-      await axiosInstance.delete(`/api/v1/links/delete-link/${deleteModal.linkId}`);
+      await axiosInstance.delete(`/v1/links/delete-link/${deleteModal.linkId}`);
 
       // Update local state immediately
       setLinks((prevLinks) =>
@@ -211,7 +211,7 @@ export default function LinkList() {
     // Refetch links to show updated data
     const fetchLinks = async () => {
       try {
-        const res = await axiosInstance.get("/api/v1/links/saved-links");
+        const res = await axiosInstance.get("/v1/links/saved-links");
         const linksData = Array.isArray(res.data.data) ? res.data.data : [];
         setLinks(linksData);
       } catch (err) {

@@ -16,7 +16,7 @@ export default function Login() {
   const onLogin = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.post("/api/v1/users/login", user);
+      const response = await axiosInstance.post("/v1/users/login", user);
       toast.success("Login successful!...");
       console.log("Signup response:", response.data);
       setTimeout(() => {

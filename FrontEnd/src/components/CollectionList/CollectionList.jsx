@@ -16,7 +16,7 @@ export default function CollectionList({ onCollectionSelect }) {
     const fetchCollections = async () => {
       try {
         setIsLoading(true);
-        const res = await axiosInstance.get("/api/v1/links/get-collections");
+        const res = await axiosInstance.get("/v1/links/get-collections");
         const collectionsData = Array.isArray(res.data.data)
           ? res.data.data
           : [];
