@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance.js";
 import toast from "react-hot-toast";
 import Addcollection from "../Addcollection/Addcollection.jsx";
 import socket from "../../socket";
@@ -16,7 +16,7 @@ export default function CollectionList({ onCollectionSelect }) {
     const fetchCollections = async () => {
       try {
         setIsLoading(true);
-        const res = await axios.get("/api/v1/links/get-collections");
+        const res = await axiosInstance.get("/api/v1/links/get-collections");
         const collectionsData = Array.isArray(res.data.data)
           ? res.data.data
           : [];

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance.js";
 import toast from "react-hot-toast";
 import React from "react";
 
@@ -79,7 +79,7 @@ export default function Editurl({ linkData, onSuccess, onCancel }) {
       };
 
       console.log("Updating link:", updateData);
-      const response = await axios.patch(
+      const response = await axiosInstance.patch(
         `/api/v1/links/update-link/${linkData._id || linkData.id}`,
         updateData
       );

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance.js";
 import toast from "react-hot-toast";
 import React from "react";
 
@@ -30,7 +30,7 @@ export default function Addcollection({ onSuccess, onCancel }) {
 
     try {
       console.log("Creating collection:", formData);
-      const response = await axios.post(
+      const response = await axiosInstance.post(
         "/api/v1/links/create-link-collection",
         {
           name: formData.name.trim(),

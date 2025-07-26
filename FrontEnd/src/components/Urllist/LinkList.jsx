@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance.js";
 import { Addurl } from "../index.js";
 import { useFilter } from "../../main.jsx";
 import socket from "../../socket";
@@ -89,7 +89,7 @@ export default function LinkList() {
   useEffect(() => {
     const fetchLinks = async () => {
       try {
-        const res = await axios.get("/api/v1/links/saved-links");
+        const res = await axiosInstance.get("/api/v1/links/saved-links");
         // Ensure we're setting an array
         const linksData = Array.isArray(res.data.data) ? res.data.data : [];
         setLinks(linksData);
@@ -159,7 +159,7 @@ export default function LinkList() {
     setDeleteModal((prev) => ({ ...prev, isDeleting: true }));
 
     try {
-      await axios.delete(`/api/v1/links/delete-link/${deleteModal.linkId}`);
+      await axiosInstance.delete(`/api/v1/links/delete-link/${deleteModal.linkId}`);
 
       // Update local state immediately
       setLinks((prevLinks) =>
@@ -211,7 +211,7 @@ export default function LinkList() {
     // Refetch links to show updated data
     const fetchLinks = async () => {
       try {
-        const res = await axios.get("/api/v1/links/saved-links");
+        const res = await axiosInstance.get("/api/v1/links/saved-links");
         const linksData = Array.isArray(res.data.data) ? res.data.data : [];
         setLinks(linksData);
       } catch (err) {
