@@ -1,18 +1,53 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import React from "react";
 
-export default function Addurl() {
+export default function Addurl({ onSuccess, selectedCollection }) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
     urlLink: "",
     tags: [""],
     notes: "",
+    collectionId: "",
   });
   const [buttonDisabled, setButtonDisabled] = useState(false);
+  const [collections, setCollections] = useState([]);
+  const [isLoadingCollections, setIsLoadingCollections] = useState(false);
+
+  // Fetch collections for dropdown
+  useEffect(() => {
+    const fetchCollections = async () => {
+      try {
+        setIsLoadingCollections(true);
+        const res = await axios.get("/api/v1/links/get-collections");
+        const collectionsData = Array.isArray(res.data.data)
+          ? res.data.data
+          : [];
+        setCollections(collectionsData);
+      } catch (err) {
+        console.error("Error fetching collections:", err);
+        // It's okay if no collections exist
+        setCollections([]);
+      } finally {
+        setIsLoadingCollections(false);
+      }
+    };
+
+    fetchCollections();
+  }, []);
+
+  // Set pre-selected collection if provided
+  useEffect(() => {
+    if (selectedCollection) {
+      setFormData((prev) => ({
+        ...prev,
+        collectionId: selectedCollection._id,
+      }));
+    }
+  }, [selectedCollection]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,20 +68,49 @@ export default function Addurl() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Send formData to backend via fetch/axios
-    //let start sending the data to the backend
 
-    if(buttonDisabled) return;
+    if (buttonDisabled) return;
     setButtonDisabled(true);
 
     try {
-      console.log("Submitting:", formData);
-      const response = await axios.post("/api/v1/links/addUrl", formData);
+      // Clean up form data before sending
+      const submitData = {
+        title: formData.title,
+        urlLink: formData.urlLink,
+        tags: formData.tags
+          .filter((tag) => tag.trim())
+          .map((tag) => tag.trim()),
+        notes: formData.notes,
+      };
+
+      // Only include collectionId if one is selected
+      if (formData.collectionId) {
+        submitData.collectionId = formData.collectionId;
+      }
+
+      console.log("Submitting:", submitData);
+      const response = await axios.post("/api/v1/links/addUrl", submitData);
       console.log("Response:", response.data);
       toast.success("Link added successfully!");
-      setTimeout(() => {
-        navigate("/UserLinks");
-      }, 1000);
+
+      // Reset form
+      setFormData({
+        title: "",
+        urlLink: "",
+        tags: [""],
+        notes: "",
+        collectionId: selectedCollection?._id || "",
+      });
+
+      // Call success callback if provided (for modal usage)
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        // Navigate if used as standalone page
+        setTimeout(() => {
+          navigate("/UserLinks");
+        }, 1000);
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
     }
@@ -113,6 +177,32 @@ export default function Addurl() {
           required
           className="w-full px-4 py-3 rounded-lg bg-neutral-900 text-white border border-neutral-600 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+
+        {/* Collection Selection */}
+        <div className="space-y-2">
+          <label className="block text-sm text-gray-300">
+            Collection (Optional)
+          </label>
+          <select
+            name="collectionId"
+            value={formData.collectionId}
+            onChange={handleChange}
+            className="w-full px-4 py-3 rounded-lg bg-neutral-900 text-white border border-neutral-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            disabled={isLoadingCollections}
+          >
+            <option value="">No Collection (General)</option>
+            {collections.map((collection) => (
+              <option key={collection._id} value={collection._id}>
+                {collection.name}
+              </option>
+            ))}
+          </select>
+          {selectedCollection && (
+            <p className="text-xs text-purple-400">
+              Pre-selected: {selectedCollection.name}
+            </p>
+          )}
+        </div>
 
         <div className="space-y-2">
           <label className="block text-sm text-gray-300">Tags (max 5)</label>

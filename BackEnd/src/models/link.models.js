@@ -26,6 +26,11 @@ const linkSchema = new Schema(
       ref: "User",
       required: true,
     },
+    collectionId: {
+      type: Schema.Types.ObjectId,
+      ref: "Collection",
+      default: null,
+    },
     title: {
       type: String,
       required: true,

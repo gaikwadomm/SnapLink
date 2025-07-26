@@ -2,9 +2,60 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.models.js";
 import { Link } from "../models/link.models.js";
+import { linkCollection } from "../models/linkCollection.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import { io } from "../app.js";
+
+const createLinkCollection = asyncHandler(async (req, res) => {
+  const { name, description } = req.body;
+  const userId = req.user._id; // Assuming user ID is stored in req.user by verifyJWT middleware
+
+  // Validate required fields
+  if (!name) {
+    return res.status(400).json({ message: "Name is required." });
+  }
+
+  // Create and save the link collection
+  const newLinkCollection = new linkCollection({
+    userId,
+    name,
+    description,
+  });
+
+  const savedLinkCollection = await newLinkCollection.save();
+
+  // Emit a socket event to notify clients about the new link collection
+  io.emit("link-collections-changed");
+
+  return res.status(201).json({
+    message: "Link collection created successfully!",
+    data: savedLinkCollection,
+  });
+});
+
+const getUserCollections = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const collections = await linkCollection
+      .find({ userId })
+      .sort({ createdAt: -1 });
+
+    if (!collections || collections.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No collections found for this user." });
+    }
+
+    return res.status(200).json({
+      message: "Collections retrieved successfully!",
+      data: collections,
+    });
+  } catch (error) {
+    console.error("Error in getUserCollections:", error);
+    throw new ApiError(500, "Internal Server Error");
+  }
+});
 
 const addUrl = asyncHandler(async (req, res) => {
   try {
@@ -17,6 +68,7 @@ const addUrl = asyncHandler(async (req, res) => {
     // Create and save the link (encryption happens in the model pre-save hook)
     const newLink = new Link({
       userId: req.user._id, // Assuming user ID is stored in req.user by verifyJWT middleware
+      collectionId: req.body.collectionId || null, // Optional collection ID
       title,
       urlLink,
       tags,
@@ -192,4 +244,12 @@ const filterByTags = asyncHandler(async (req, res) => {
   });
 });
 
-export { addUrl, getUserLinks, deleteLink, updateLink, filterByTags };
+export {
+  addUrl,
+  getUserLinks,
+  deleteLink,
+  updateLink,
+  filterByTags,
+  createLinkCollection,
+  getUserCollections,
+};
