@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance.js";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function Login() {
@@ -16,7 +16,7 @@ export default function Login() {
   const onLogin = async () => {
     try {
       setLoading(true);
-      const response = await axios.post("/api/v1/users/login", user);
+      const response = await axiosInstance.post("/v1/users/login", user);
       toast.success("Login successful!...");
       console.log("Signup response:", response.data);
       setTimeout(() => {
