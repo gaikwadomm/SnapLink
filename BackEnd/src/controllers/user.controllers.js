@@ -1,5 +1,4 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
@@ -75,8 +74,10 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  const {email, password } = req.body;
 
+  console.log("Login request received");
+  const {email, password } = req.body;
+  console.log("Login details:", { email, password });
   if (!email) {
     throw new ApiError(400, "Email is required");
   }
@@ -84,6 +85,8 @@ const loginUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({
     $or: [{ email }],
   });
+
+  console.log("User found:", user ? user.username : "No user found");
 
   if (!user) {
     throw new ApiError(404, "User not found");

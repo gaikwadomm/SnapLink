@@ -11,19 +11,24 @@ const server = http.createServer(app);
 // Create Socket.IO server
 const io = new Server(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN,
-    methods: ["GET", "POST"],
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    credentials: true,
   },
 });
 
-io.on("connection", (Socket)=>{
-  console.log("A user connected:", Socket.id);
-  // Add your event handlers here
-})
+io.on("connection", (socket) => {
+  // console.log("A user connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    // console.log("User disconnected:", socket.id);
+  });
+});
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    credentials: true,
   })
 );
 
@@ -37,12 +42,12 @@ app.use(cookieParser());
 import healthCheckRoutes from "./routes/healthcheck.routes.js";
 import userRouters from "./routes/user.routes.js";
 import linkRouters from "./routes/links.routes.js";
-import { Socket } from "dgram";
+
 // Using routes
 app.use("/api/healthcheck", healthCheckRoutes);
 app.use("/api/v1/users", userRouters);
 app.use("/api/v1/links", linkRouters);
 
 // Error handling middleware
-app.use(errorHandler)
+app.use(errorHandler);
 export { app, server, io };
