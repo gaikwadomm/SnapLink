@@ -6,19 +6,27 @@ import {
   logoutUser,
   refreshAccessToken,
   deleteAccount,
+  verifyEmail,
+  resendVerificationEmail,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/user.controllers.js";
 import { verifyJWT } from "../middlewares/auth.middlewares.js";
 
-const router = Router()
+const router = Router();
 
-router.route("/register").post(registerUser)
-router.route("/login").post(loginUser)
+// Public routes
+router.route("/register").post(registerUser);
+router.route("/login").post(loginUser);
 router.route("/refresh-token").post(refreshAccessToken);
+router.route("/verify-email").post(verifyEmail);
+router.route("/resend-verification").post(resendVerificationEmail);
+router.route("/forgot-password").post(forgotPassword);
+router.route("/reset-password").post(resetPassword);
 
-router.route("/logout").post(verifyJWT, logoutUser)
-router.route("/change-password").post(verifyJWT, changeCurrentPassword)
-router.route("/delete-account").delete(verifyJWT, deleteAccount)
+// Protected routes
+router.route("/logout").post(verifyJWT, logoutUser);
+router.route("/change-password").post(verifyJWT, changeCurrentPassword);
+router.route("/delete-account").delete(verifyJWT, deleteAccount);
 
-
-export default router
-
+export default router;

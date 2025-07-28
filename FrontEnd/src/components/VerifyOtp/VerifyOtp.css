@@ -1,0 +1,66 @@
+/* Additional styles for VerifyOtp component */
+
+.otp-input {
+  transition: all 0.2s ease-in-out;
+}
+
+.otp-input:focus {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.otp-input.filled {
+  background-color: #f0f9ff;
+  border-color: #3b82f6;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .otp-container {
+    gap: 0.5rem;
+  }
+
+  .otp-input {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+  }
+}
+
+/* Custom focus styles */
+.otp-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6, 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Animation for success state */
+.success-animation {
+  animation: successPulse 0.6s ease-in-out;
+}
+
+@keyframes successPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+    background-color: #dcfce7;
+    border-color: #22c55e;
+  }
+  100% {
+    transform: scale(1);
+  }
+}

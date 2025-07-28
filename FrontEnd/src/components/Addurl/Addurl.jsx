@@ -118,7 +118,7 @@ export default function Addurl({ onSuccess, selectedCollection }) {
 
   return (
     <div className="w-full max-w-md bg-neutral-800 border border-neutral-700 rounded-xl shadow-lg p-8 text-white">
-      <Toaster
+      {/* <Toaster
         position="top-center"
         reverseOrder={false}
         toastOptions={{
@@ -154,7 +154,7 @@ export default function Addurl({ onSuccess, selectedCollection }) {
             },
           },
         }}
-      />
+      /> */}
       <h2 className="text-xl font-semibold mb-6">Add a New Link</h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">

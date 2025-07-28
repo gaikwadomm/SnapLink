@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router";
 import axiosInstance from "../../utils/axiosInstance.js";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -17,15 +17,18 @@ export default function Login() {
     try {
       setLoading(true);
       const response = await axiosInstance.post("/v1/users/login", user);
-      toast.success("Login successful!...");
-      console.log("Signup response:", response.data);
+      toast.success("Login successful!");
+      console.log("Login response:", response.data);
       setTimeout(() => {
-        navigate("/UserLinks");
+        navigate("/dashboard");
       }, 1000);
     } catch (error) {
-      toast.error("An error occurred while login...");
+      toast.error(
+        error.response?.data?.message || "An error occurred while login..."
+      );
+      console.error("Login error:", error);
       if (error instanceof Error) {
-        console.error("Login error:", error.message);
+        console.error("Login error:", error.response?.data?.message);
       } else {
         console.error("Login error:", error);
       }
@@ -66,43 +69,6 @@ export default function Login() {
             }
           }}
         >
-          <Toaster
-            position="top-center"
-            reverseOrder={false}
-            toastOptions={{
-              style: {
-                background: "#23272a",
-                color: "#fff",
-                borderRadius: "8px",
-                border: "1px solid #FFD580",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
-                fontSize: "1rem",
-                padding: "16px 24px",
-              },
-              success: {
-                iconTheme: {
-                  primary: "#FFD580",
-                  secondary: "#23272a",
-                },
-                style: {
-                  border: "1px solid #FFD580",
-                  background: "#23272a",
-                  color: "#FFD580",
-                },
-              },
-              error: {
-                iconTheme: {
-                  primary: "#ff4d4f",
-                  secondary: "#23272a",
-                },
-                style: {
-                  border: "1px solid #ff4d4f",
-                  background: "#23272a",
-                  color: "#ff4d4f",
-                },
-              },
-            }}
-          />{" "}
           <input
             id="email"
             type="email"
@@ -118,16 +84,13 @@ export default function Login() {
             className="w-full px-4 py-3 rounded-lg bg-neutral-900 text-white placeholder-gray-500 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
           <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                className="form-checkbox accent-amber-500"
-              />
-              Remember me
-            </label>
-            <a href="#" className="text-amber-400 hover:underline">
+            <div></div>
+            <Link
+              to="/forgot-password"
+              className="text-amber-400 hover:underline"
+            >
               Forgot Password?
-            </a>
+            </Link>
           </div>
           <button
             type="submit"
