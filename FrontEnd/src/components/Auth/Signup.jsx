@@ -17,14 +17,16 @@ export default function Signup() {
     try {
       setLoading(true);
       const response = await axiosInstance.post("/v1/users/register", user);
-      toast.success("Registration initiated! Please check your email for verification code.");
+      toast.success(
+        "Registration initiated! Please check your email for verification code."
+      );
       console.log("Signup response:", response.data);
-      
+
       // Redirect to verify OTP page with email in state
-      navigate("/verify-otp", { 
-        state: { 
-          email: user.email 
-        } 
+      navigate("/verify-otp", {
+        state: {
+          email: user.email,
+        },
       });
     } catch (error) {
       toast.error(
@@ -92,13 +94,7 @@ export default function Signup() {
           />
 
           <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                className="form-checkbox accent-amber-500"
-              />
-              Remember me
-            </label>
+            <div></div>
             <a href="#" className="text-amber-400 hover:underline">
               Forgot Password?
             </a>
