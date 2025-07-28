@@ -26,6 +26,16 @@ const userSchema = new Schema(
     refreshToken: {
       type: String,
     },
+    isEmailVerified: {
+      type: Boolean,
+      default: true, // All users in main collection are verified
+    },
+    passwordResetOTP: {
+      type: String,
+    },
+    passwordResetOTPExpiry: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
