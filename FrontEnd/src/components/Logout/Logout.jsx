@@ -36,7 +36,7 @@ export default function Logout() {
     <button
       onClick={handleLogout}
       disabled={loading}
-      className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="flex items-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white font-normal rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm border border-gray-600 hover:border-gray-500"
     >
       <svg
         className="w-4 h-4"
