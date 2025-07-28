@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { toast } from "react-hot-toast";
-import axios from "axios";
 import axiosInstance from "../../utils/axiosInstance";
 
 const VerifyOtp = () => {

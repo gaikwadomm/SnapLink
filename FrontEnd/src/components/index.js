@@ -8,6 +8,7 @@ import Addcollection from "./Addcollection/Addcollection";
 import VerifyOtp from "./VerifyOtp/VerifyOtp";
 import ForgotPassword from "./Auth/ForgotPassword";
 import ResetPassword from "./Auth/ResetPassword";
+import Logout from "./Logout/Logout";
 
 export {
   Signup,
@@ -19,5 +20,6 @@ export {
   Addcollection,
   VerifyOtp,
   ForgotPassword,
-  ResetPassword
+  ResetPassword,
+  Logout,
 };
