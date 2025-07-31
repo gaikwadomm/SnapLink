@@ -95,7 +95,7 @@ export default function Signup() {
 
           <div className="flex items-center justify-between text-sm">
             <div></div>
-            <a href="#" className="text-amber-400 hover:underline">
+            <a href="/forgot-password" className="text-amber-400 hover:underline">
               Forgot Password?
             </a>
           </div>

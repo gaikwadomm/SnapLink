@@ -1,6 +1,7 @@
 import { app, server } from "./app.js";
 import dotenv from "dotenv";
 import connectDB from "./db/index.js";
+import { startScheduler } from "./cron/schedular.js";
 
 // This code uses the dotenv package to load environment variables from a file named .env located in the project root.
 
@@ -18,6 +19,8 @@ connectDB()
   .then(() => {
     server.listen(port, () => {
       console.log(`Server is running on port ${port}`);
+      // Start the cron scheduler for link monitoring
+      startScheduler();
     });
   })
   .catch((err) => {
