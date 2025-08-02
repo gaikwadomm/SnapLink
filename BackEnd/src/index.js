@@ -20,7 +20,7 @@ connectDB()
     server.listen(port, () => {
       console.log(`Server is running on port ${port}`);
       // Start the cron scheduler for link monitoring
-      startScheduler();
+      // startScheduler(); RENDER CRON WILL HANDLE IT DONT ADD
     });
   })
   .catch((err) => {

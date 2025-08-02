@@ -65,20 +65,22 @@ async function checkAllLinks() {
   console.log("[Monitor] Daily link check finished.");
 }
 
-export function startScheduler() {
-  // Schedules the job to run once every day at 2:00 AM UTC.
-  cron.schedule(
-    "0 2 * * *",
-    () => {
-      checkAllLinks();
-    },
-    {
-      scheduled: true,
-      timezone: "UTC",
-    }
-  );
+// export function startScheduler() {
+//   // Schedules the job to run once every day at 2:00 AM UTC.
+//   cron.schedule(
+//     "0 2 * * *",
+//     () => {
+//       checkAllLinks();
+//     },
+//     {
+//       scheduled: true,
+//       timezone: "UTC",
+//     }
+//   );
 
-  console.log("✅ Cron job for link monitoring has been scheduled.");
-  // Optional: Run once on startup for testing
-  // checkAllLinks();
-}
+//   console.log("✅ Cron job for link monitoring has been scheduled.");
+//   // Optional: Run once on startup for testing
+//   // checkAllLinks();
+// }
+
+export { checkAllLinks };
