@@ -92,8 +92,8 @@ async function checkForUpdates(newContent, oldContent) {
   const prompt = `You are an intelligent website update detection assistant. Compare the OLD CONTENT with the NEW CONTENT of a webpage. Your goal is to identify if a **significant update** has occurred, like a new software version, a major feature announcement, or a documentation rewrite. **Ignore** minor changes like typo fixes, date updates, or small blog posts. Respond with a JSON object. - If a major update is found, respond with: {"update": true, "changes": "A summary of what changed."} - If no major update is found, respond with: {"update": false, "changes": null} --- OLD CONTENT: ${oldContent.substring(0, 4000)} --- NEW CONTENT: ${newContent.substring(0, 4000)} --- JSON Response:`;
   try {
     const result = await genAI.models.generateContent({
-      model: "gemini-pro",
-      contents: prompt
+      model: "gemini-2.5-flash",
+      contents: prompt,
     });
     // const response = await result.response;
     const jsonText = response.text().trim().replace(/```json|```/g, "");
