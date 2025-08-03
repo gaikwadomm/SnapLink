@@ -96,7 +96,7 @@ async function checkForUpdates(newContent, oldContent) {
       contents: prompt,
     });
     // const response = await result.response;
-    const jsonText = response.text().trim().replace(/```json|```/g, "");
+    const jsonText = result.text().trim().replace(/```json|```/g, "");
     const parsed = JSON.parse(jsonText);
     return { hasUpdate: parsed.update || false, changes: parsed.changes || null };
   } catch (error) {
