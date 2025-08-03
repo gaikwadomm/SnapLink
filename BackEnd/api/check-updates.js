@@ -158,35 +158,41 @@ async function processSingleLink(link, LinkModel) {
   await LinkModel.findByIdAndUpdate(link._id, { $set: updateData });
 }
 
-
 // --- VERCEL SERVERLESS HANDLER ---
-// Vercel will call this function on the schedule defined in vercel.json
 export default async function handler(request, response) {
-  // Security check to ensure only Vercel's scheduler can run this
   if (request.headers.authorization !== `Bearer ${CRON_SECRET}`) {
     return response.status(401).json({ message: 'Unauthorized' });
   }
 
   try {
-    // A serverless function must connect to the DB on each run
-    await mongoose.connect(MONGODB_URI);
+    await mongoose.connect(MONGO_URI);
     console.log("MongoDB connected for cron job.");
+
+    // ===================================================================
+    //  DEBUGGING LOGS
+    // ===================================================================
+    const dbName = mongoose.connection.db.databaseName;
+    console.log(`Connected to database: "${dbName}"`);
+
+    const collections = await mongoose.connection.db.listCollections().toArray();
+    const collectionNames = collections.map(c => c.name);
+    console.log('Available collections:', collectionNames);
+    // ===================================================================
 
     const Link = mongoose.models.Link || mongoose.model('Link', linkSchema);
     const User = mongoose.models.User || mongoose.model('User', userSchema);
 
-    // This is the core logic from your checkAllLinks function
     const linksToCheck = await Link.find().select('+lastContentText');
     console.log(`Found ${linksToCheck.length} links to process in parallel.`);
 
-    const allPromises = linksToCheck.map(link => processSingleLink(link, Link));
-    await Promise.allSettled(allPromises);
+    if (linksToCheck.length > 0) {
+        const allPromises = linksToCheck.map(link => processSingleLink(link, Link));
+        await Promise.allSettled(allPromises);
+    }
 
-    // Disconnect from the DB when done
     await mongoose.connection.close();
     console.log("Cron job finished successfully.");
     
-    // Send a success response
     return response.status(200).json({ message: `Processed ${linksToCheck.length} links.` });
 
   } catch (error) {
