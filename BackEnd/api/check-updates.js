@@ -96,13 +96,25 @@ async function checkForUpdates(newContent, oldContent) {
       contents: prompt,
     });
 
-    let jsonText = result.text;
-    console.log(jsonText)
-    if(jsonText.startsWith('```')){
-      jsonText = jsonText.replace(/``````/g, "").trim();
+    // Fix the JSON cleaning logic
+    let jsonText = result.text().trim();
+    console.log("Raw Gemini response:", jsonText);
+
+    // Remove markdown code blocks if present
+    if (jsonText.includes("```")) {
+      jsonText = jsonText
+        .replace(/```json\n?/g, "")
+        .replace(/```/g, "")
+        .trim();
     }
+
+    console.log("Cleaned JSON:", jsonText);
+    
     const parsed = JSON.parse(jsonText);
-    return { hasUpdate: parsed.update || false, changes: parsed.changes || null };
+    return {
+      hasUpdate: parsed.update || false,
+      changes: parsed.changes || null,
+    };
   } catch (error) {
     console.error("[Monitor] Error checking for updates with Gemini:", error);
     return { hasUpdate: false, changes: null };
