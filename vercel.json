@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/BackEnd/api/cron/check-updates",
-      "schedule": "0 14 * * *",
+      "schedule": "0 2 * * *",
       "maxDuration": 60
     }
   ]
