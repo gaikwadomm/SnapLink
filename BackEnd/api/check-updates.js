@@ -97,7 +97,7 @@ async function checkForUpdates(newContent, oldContent) {
     });
 
     // Fix the JSON cleaning logic
-    let jsonText = result.text().trim();
+    let jsonText = result.text.trim();
     console.log("Raw Gemini response:", jsonText);
 
     // Remove markdown code blocks if present
@@ -109,7 +109,7 @@ async function checkForUpdates(newContent, oldContent) {
     }
 
     console.log("Cleaned JSON:", jsonText);
-    
+
     const parsed = JSON.parse(jsonText);
     return {
       hasUpdate: parsed.update || false,
