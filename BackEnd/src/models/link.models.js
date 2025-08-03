@@ -121,7 +121,7 @@ const linkSchema = new Schema(
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      requiraed: true,
     },
     collectionId: {
       type: Schema.Types.ObjectId,
