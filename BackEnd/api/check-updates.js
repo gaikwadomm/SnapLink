@@ -165,7 +165,7 @@ export default async function handler(request, response) {
   }
 
   try {
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(MONGODB_URI);
     console.log("MongoDB connected for cron job.");
 
     // ===================================================================
