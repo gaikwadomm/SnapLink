@@ -96,7 +96,7 @@ async function checkForUpdates(newContent, oldContent) {
       contents: prompt,
     });
 
-    const jsonText = result.text;
+    let jsonText = result.text;
     console.log(jsonText)
     if(jsonText.startsWith('```')){
       jsonText = jsonText.replace(/``````/g, "").trim();
