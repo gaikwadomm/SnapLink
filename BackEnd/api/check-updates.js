@@ -95,9 +95,12 @@ async function checkForUpdates(newContent, oldContent) {
       model: "gemini-2.5-flash",
       contents: prompt,
     });
-    // const response = await result.response;
+
     const jsonText = result.text;
     console.log(jsonText)
+    if(jsonText.startsWith('```')){
+      jsonText = jsonText.replace(/``````/g, "").trim();
+    }
     const parsed = JSON.parse(jsonText);
     return { hasUpdate: parsed.update || false, changes: parsed.changes || null };
   } catch (error) {
