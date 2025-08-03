@@ -77,7 +77,7 @@ const docsLinkSchema = new Schema(
 );
 
 // Pre-save hook to encrypt urlLink if modified
-linkSchema.pre("save", function (next) {
+docsLinkSchema.pre("save", function (next) {
   if (!this.isModified("urlLink")) return next();
 
   const iv = crypto.randomBytes(16);
@@ -92,7 +92,7 @@ linkSchema.pre("save", function (next) {
 });
 
 // Virtual for decrypted URL (getter)
-linkSchema.virtual("decryptedUrl").get(function () {
+docsLinkSchema.virtual("decryptedUrl").get(function () {
   if (!this.encryptedUrl || !this.iv) return null;
   try {
     const decipher = crypto.createDecipheriv(
