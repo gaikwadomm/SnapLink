@@ -168,15 +168,6 @@ export default async function handler(request, response) {
   }
 
   try {
-    // Debug: List all collections in your database
-    const collections = await mongoose.connection.db
-      .listCollections()
-      .toArray();
-    console.log(
-      "Available collections:",
-      collections.map((c) => c.name)
-    );
-
     // Debug: Check what your current model is pointing to
     console.log("Link model collection name:", Link.collection.name);
     // A serverless function must connect to the DB on each run
