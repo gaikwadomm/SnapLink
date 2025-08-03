@@ -168,32 +168,27 @@ export default async function handler(request, response) {
   }
 
   try {
-    // Debug: Check what your current model is pointing to
-    console.log("Link model collection name:", Link.collection.name);
     // A serverless function must connect to the DB on each run
     await mongoose.connect(MONGODB_URI);
     console.log("MongoDB connected for cron job.");
 
-    const Link = mongoose.models.Link || mongoose.model("Link", linkSchema);
-    const User = mongoose.models.User || mongoose.model("User", userSchema);
+    const Link = mongoose.models.Link || mongoose.model('Link', linkSchema);
+    const User = mongoose.models.User || mongoose.model('User', userSchema);
 
     // This is the core logic from your checkAllLinks function
-    const linksToCheck = await Link.find().select("+lastContentText");
+    const linksToCheck = await Link.find().select('+lastContentText');
     console.log(`Found ${linksToCheck.length} links to process in parallel.`);
 
-    const allPromises = linksToCheck.map((link) =>
-      processSingleLink(link, Link)
-    );
+    const allPromises = linksToCheck.map(link => processSingleLink(link, Link));
     await Promise.allSettled(allPromises);
 
     // Disconnect from the DB when done
     await mongoose.connection.close();
     console.log("Cron job finished successfully.");
-
+    
     // Send a success response
-    return response
-      .status(200)
-      .json({ message: `Processed ${linksToCheck.length} links.` });
+    return response.status(200).json({ message: `Processed ${linksToCheck.length} links.` });
+
   } catch (error) {
     console.error("Error in Vercel Cron Job:", error);
     if (mongoose.connection.readyState === 1) {
