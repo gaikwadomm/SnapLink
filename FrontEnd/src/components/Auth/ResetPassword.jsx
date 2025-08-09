@@ -4,119 +4,161 @@ import axiosInstance from "../../utils/axiosInstance.js";
 import toast from "react-hot-toast";
 
 export default function ResetPassword() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const emailFromState = location.state?.email || "";
-    
-    const [data, setData] = useState({
-        email: emailFromState,
-        otp: "",
-        newPassword: "",
-    });
-    const [buttonDisabled, setButtonDisabled] = useState(true);
-    const [loading, setLoading] = useState(false);
-    
-    const onResetPassword = async () => {
-        try {
-            setLoading(true);
-            const response = await axiosInstance.post("/v1/users/reset-password", {
-                email: data.email,
-                otp: data.otp,
-                newPassword: data.newPassword
-            });
-            toast.success("Password reset successful!");
-            console.log("Reset password response:", response.data);
-            setTimeout(() => {
-                navigate("/login");
-            }, 1000);
-        } catch (error) {
-            toast.error(
-                error.response?.data?.message || "An error occurred while resetting password."
-            );
-            console.error("Reset password error:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-    
-    useEffect(() => {
-        const { email, otp, newPassword } = data;
-        setButtonDisabled(!(email && otp && newPassword));
-    }, [data]);
+  const [showPassword, setShowPassword] = useState(false);
+  const onClickShowPassword = () => {
+    setShowPassword((prev) => !prev);
+  };
+  const navigate = useNavigate();
+  const location = useLocation();
+  const emailFromState = location.state?.email || "";
 
-    return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-neutral-900 to-black text-white px-4">
-            <header className="mb-6 text-center">
-                <h1 className="text-4xl font-semibold text-white tracking-wide">Snaplink</h1>
-                <p className="mt-1 text-sm text-gray-400">
-                    Save the links that matter — like your own personal bookmark vault.
-                </p>
-            </header>
+  const [data, setData] = useState({
+    email: emailFromState,
+    otp: "",
+    newPassword: "",
+  });
+  const [buttonDisabled, setButtonDisabled] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-            <div className="w-full max-w-md bg-neutral-800 border border-neutral-700 rounded-xl shadow-lg p-8">
-                <h2 className="text-2xl font-bold text-center mb-6">
-                    {loading ? "Resetting Password..." : "Reset Password"}
-                </h2>
-                <p className="text-sm text-gray-400 text-center mb-6">
-                    Enter the OTP sent to your email and create a new password.
-                </p>
+  const onResetPassword = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.post("/v1/users/reset-password", {
+        email: data.email,
+        otp: data.otp,
+        newPassword: data.newPassword,
+      });
+      toast.success("Password reset successful!");
+      console.log("Reset password response:", response.data);
+      setTimeout(() => {
+        navigate("/login");
+      }, 1000);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          "An error occurred while resetting password."
+      );
+      console.error("Reset password error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                <form onSubmit={(e) => { e.preventDefault(); onResetPassword(); }}>
-                    <div className="mb-4">
-                        <label htmlFor="email" className="block text-sm font-medium mb-2">Email</label>
-                        <input
-                            type="email"
-                            id="email"
-                            value={data.email}
-                            onChange={(e) => setData({ ...data, email: e.target.value })}
-                            required
-                            className="w-full px-4 py-3 rounded-lg bg-neutral-900 text-white placeholder-gray-500 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                            placeholder="Enter your email address"
-                        />
-                    </div>
+  useEffect(() => {
+    const { email, otp, newPassword } = data;
+    setButtonDisabled(!(email && otp && newPassword));
+  }, [data]);
 
-                    <div className="mb-4">
-                        <label htmlFor="otp" className="block text-sm font-medium mb-2">OTP</label>
-                        <input
-                            type="text"
-                            id="otp"
-                            value={data.otp}
-                            onChange={(e) => setData({ ...data, otp: e.target.value })}
-                            required
-                            maxLength="6"
-                            className="w-full px-4 py-3 rounded-lg bg-neutral-900 text-white placeholder-gray-500 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                            placeholder="Enter 6-digit OTP"
-                        />
-                    </div>
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black text-white px-4">
+      <header className="mb-8 text-center">
+        <h1 className="text-5xl font-bold text-white tracking-wider mb-2 drop-shadow-2xl">
+          Snaplink
+        </h1>
+        <p className="text-lg text-gray-300 font-light drop-shadow-lg">
+          Save the links that matter — like your own personal bookmark vault.
+        </p>
+      </header>
 
-                    <div className="mb-4">
-                        <label htmlFor="newPassword" className="block text-sm font-medium mb-2">New Password</label>
-                        <input
-                            type="password"
-                            id="newPassword"
-                            value={data.newPassword}
-                            onChange={(e) => setData({ ...data, newPassword: e.target.value })}
-                            required
-                            className="w-full px-4 py-3 rounded-lg bg-neutral-900 text-white placeholder-gray-500 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                            placeholder="Enter new password"
-                        />
-                    </div>
+      <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-10 shadow-white/10">
+        <h2 className="text-3xl font-light text-center mb-8 text-white drop-shadow-lg">
+          {loading ? "Resetting Password..." : "Reset Password"}
+        </h2>
+        <p className="text-lg text-gray-300 text-center mb-8 drop-shadow-sm">
+          Enter the OTP sent to your email and create a new password.
+        </p>
 
-                    <button
-                        type="submit"
-                        disabled={buttonDisabled || loading}
-                        className="w-full py-3 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-yellow-500 hover:to-amber-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {loading ? "Resetting Password..." : "Reset Password"}
-                    </button>
-                </form>
+        <form
+          className="space-y-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            onResetPassword();
+          }}
+        >
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-lg font-medium mb-3 text-gray-200 drop-shadow-sm"
+            >
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={data.email}
+              onChange={(e) => setData({ ...data, email: e.target.value })}
+              required
+              className="w-full px-5 py-4 rounded-xl bg-black/40 text-white placeholder-gray-400 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/70 focus:border-white/70 focus:shadow-lg focus:shadow-white/20 transition-all duration-300"
+              placeholder="Enter your email address"
+            />
+          </div>
 
-                <div className="mt-6 text-center">
-                    <Link to="/login" className="text-amber-400 hover:underline">
-                        ← Back to Login
-                    </Link>
-                </div>
-            </div>
+          <div>
+            <label
+              htmlFor="otp"
+              className="block text-lg font-medium mb-3 text-gray-200 drop-shadow-sm"
+            >
+              OTP
+            </label>
+            <input
+              type="text"
+              id="otp"
+              value={data.otp}
+              onChange={(e) => setData({ ...data, otp: e.target.value })}
+              required
+              maxLength="6"
+              className="w-full px-5 py-4 rounded-xl bg-black/40 text-white placeholder-gray-400 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/70 focus:border-white/70 focus:shadow-lg focus:shadow-white/20 transition-all duration-300"
+              placeholder="Enter 6-digit OTP"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="newPassword"
+              className="block text-lg font-medium mb-3 text-gray-200 drop-shadow-sm"
+            >
+              New Password
+            </label>
+            <input
+              type={showPassword ? "text" : "password"}
+              id="newPassword"
+              value={data.newPassword}
+              onChange={(e) =>
+                setData({ ...data, newPassword: e.target.value })
+              }
+              required
+              className="w-full px-5 py-4 rounded-xl bg-black/40 text-white placeholder-gray-400 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/70 focus:border-white/70 focus:shadow-lg focus:shadow-white/20 transition-all duration-300"
+              placeholder="Enter new password"
+            />
+          </div>
+          <div>
+            <button
+              type="button"
+              onClick={onClickShowPassword}
+              className="text-gray-300 hover:text-white hover:drop-shadow-md underline-offset-4 hover:underline transition-all duration-200"
+            >
+              {showPassword ? "Hide" : "Show"} Password
+            </button>
+          </div>
+
+          <button
+            type="submit"
+            disabled={buttonDisabled || loading}
+            className="w-full py-4 rounded-xl bg-white text-black font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-white/30 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none drop-shadow-lg"
+          >
+            {loading ? "Resetting Password..." : "Reset Password"}
+          </button>
+        </form>
+
+        <div className="mt-8 text-center">
+          <Link
+            to="/login"
+            className="text-gray-300 hover:text-white hover:drop-shadow-md underline-offset-4 hover:underline transition-all duration-200"
+          >
+            ← Back to Login
+          </Link>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
