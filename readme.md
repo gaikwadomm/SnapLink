@@ -1,6 +1,6 @@
 SnapLink: Your AI-Powered Web Monitor
 <p align="center">
-<img src="https://i.imgur.com/8Q5kF8k.png" alt="SnapLink Logo" width="150"/>
+<img src="./FrontEnd/SnapLinkLogo.png" alt="SnapLink Logo" width="150"/>
 </p>
 
 <p align="center">
