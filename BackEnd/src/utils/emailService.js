@@ -1,28 +1,58 @@
-import nodemailer from "nodemailer";
+// import nodemailer from "nodemailer";
 
 // Create Gmail SMTP transporter
+// let transporter = null;
+
+// const createTransporter = () => {
+//   if (!transporter) {
+//     if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_APP_PASSWORD) {
+//       throw new Error(
+//         "GMAIL_EMAIL and GMAIL_APP_PASSWORD environment variables are required"
+//       );
+//     }
+
+//     console.log("🚀 Initializing Gmail SMTP transporter...");
+//     transporter = nodemailer.createTransport({
+//       service: "gmail",
+//       auth: {
+//         user: process.env.GMAIL_EMAIL,
+//         pass: process.env.GMAIL_APP_PASSWORD, // App Password, not regular password
+//       },
+//     });
+//     console.log("✅ Gmail SMTP transporter initialized successfully");
+//   }
+//   return transporter;
+// };
+
+import nodemailer from "nodemailer";
+
 let transporter = null;
 
 const createTransporter = () => {
   if (!transporter) {
-    if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_APP_PASSWORD) {
-      throw new Error(
-        "GMAIL_EMAIL and GMAIL_APP_PASSWORD environment variables are required"
-      );
+    if (
+      !process.env.SMTP_HOST ||
+      !process.env.SMTP_USER ||
+      !process.env.SMTP_PASS
+    ) {
+      throw new Error("SMTP credentials are missing in environment variables");
     }
 
-    console.log("🚀 Initializing Gmail SMTP transporter...");
+    console.log("🚀 Initializing Brevo SMTP transporter...");
     transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT) || 587,
+      secure: false, // use true for 465
       auth: {
-        user: process.env.GMAIL_EMAIL,
-        pass: process.env.GMAIL_APP_PASSWORD, // App Password, not regular password
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
     });
-    console.log("✅ Gmail SMTP transporter initialized successfully");
+    console.log("✅ Brevo SMTP transporter initialized successfully");
   }
   return transporter;
 };
+
 
 // Generate 6-digit OTP
 export const generateOTP = () => {
