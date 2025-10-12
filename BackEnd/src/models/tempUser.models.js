@@ -32,13 +32,6 @@ const tempUserSchema = new Schema(
   }
 );
 
-// Hash password before saving
-tempUserSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
-});
-
 // Auto delete expired temp users after 15 minutes
 tempUserSchema.index(
   { emailVerificationOTPExpiry: 1 },
