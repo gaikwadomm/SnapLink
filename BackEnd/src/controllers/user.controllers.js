@@ -314,7 +314,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
     const verifiedUser = await User.create({
       username: tempUser.username,
       email: tempUser.email,
-      password: tempUser.password, // Already hashed in temp collection
+      password: tempUser.password, 
       isEmailVerified: true,
     });
 
