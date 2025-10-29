@@ -10,6 +10,7 @@ import crypto from "crypto";
 // --- CONFIGURATION ---
 // Vercel provides environment variables from your project settings
 const {
+  GEMINI_API_KEY,
   MONGODB_URI,
   GMAIL_EMAIL,
   GMAIL_APP_PASSWORD,
