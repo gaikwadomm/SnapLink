@@ -90,7 +90,6 @@ const genAI = new GoogleGenAI(GEMINI_API_KEY);
 //   aut GMAIL_EMAIL, pass: GMAIL_APP_PASSWORD },
 // });
 
-import nodemailer from "nodemailer";
 let transporter = null;
 
 const createTransporter = () => {
