@@ -8,7 +8,6 @@ import crypto from "crypto";
 
 // --- CONFIGURATION ---
 const {
-  GEMINI_API_KEY,
   MONGODB_URI,
   GMAIL_EMAIL,
   GMAIL_APP_PASSWORD,
@@ -84,7 +83,11 @@ const userSchema = new mongoose.Schema({
 
 // --- HELPER FUNCTIONS ---
 
-const genAI = new GoogleGenAI(GEMINI_API_KEY);
+if (!GEMINI_API_KEY) {
+  throw new Error("GEMINI_API_KEY is not defined in environment variables");
+}
+
+const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
 
 let transporter = null;
 
