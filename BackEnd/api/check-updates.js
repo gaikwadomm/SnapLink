@@ -1,4 +1,11 @@
-// new file at: BackEnd/api/check-updates.js
+// ...existing code...
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: join(__dirname, "..", ".env") });
 
 import mongoose from "mongoose";
 import axios from "axios";
@@ -8,18 +15,20 @@ import { JSDOM } from "jsdom";
 import crypto from "crypto";
 
 // --- CONFIGURATION ---
-// Vercel provides environment variables from your project settings
 const {
   MONGODB_URI,
   GMAIL_EMAIL,
   GMAIL_APP_PASSWORD,
   ENCRYPTION_SECRET_KEY,
-  CRON_SECRET, // A secret you create in Vercel project settings
+  CRON_SECRET,
+  SMTP_HOST,
+  SMTP_PORT,
+  SMTP_USER,
+  SMTP_PASS,
+  GEMINI_API_KEY,
 } = process.env;
 
 // --- DATABASE & MODELS ---
-// Schemas are defined here to make the serverless function self-contained.
-
 const linkSchema = new mongoose.Schema(
   {
     userId: {
@@ -56,10 +65,10 @@ const linkSchema = new mongoose.Schema(
 
 // Decryption logic
 const algorithm = "aes-256-cbc";
-let secretKey = ENCRYPTION_SECRET_KEY;
-if (secretKey && secretKey.length < 32) secretKey = secretKey.padEnd(32, "0");
-else if (secretKey && secretKey.length > 32) secretKey = secretKey.slice(0, 32);
-if (secretKey) secretKey = Buffer.from(secretKey, "utf8");
+let secretKey = ENCRYPTION_SECRET_KEY || "";
+if (secretKey.length < 32) secretKey = secretKey.padEnd(32, "0");
+else if (secretKey.length > 32) secretKey = secretKey.slice(0, 32);
+secretKey = Buffer.from(secretKey, "utf8");
 
 linkSchema.virtual("decryptedUrl").get(function () {
   if (!this.encryptedUrl || !this.iv || !secretKey) return null;
@@ -70,7 +79,8 @@ linkSchema.virtual("decryptedUrl").get(function () {
       Buffer.from(this.iv, "hex")
     );
     let decrypted = decipher.update(this.encryptedUrl, "hex", "utf8");
-    return decrypted + decipher.final("utf8");
+    decrypted += decipher.final("utf8");
+    return decrypted;
   } catch (err) {
     return null;
   }
@@ -82,37 +92,28 @@ const userSchema = new mongoose.Schema({
 
 // --- HELPER FUNCTIONS ---
 
-const genAI = new GoogleGenAI(GEMINI_API_KEY);
-// const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+if (!GEMINI_API_KEY) {
+  throw new Error("GEMINI_API_KEY is not defined in environment variables");
+}
 
-// const transporter = nodemailer.createTransport({
-//   service: "gmail",
-//   aut GMAIL_EMAIL, pass: GMAIL_APP_PASSWORD },
-// });
+const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
 
 let transporter = null;
 
 const createTransporter = () => {
   if (!transporter) {
-    if (
-      !process.env.SMTP_HOST ||
-      !process.env.SMTP_USER ||
-      !process.env.SMTP_PASS
-    ) {
+    if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
       throw new Error("SMTP credentials are missing in environment variables");
     }
-
-    console.log("🚀 Initializing Brevo SMTP transporter...");
     transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT) || 587,
-      secure: false, // use true for 465, false for other ports
+      host: SMTP_HOST,
+      port: parseInt(SMTP_PORT, 10) || 587,
+      secure: parseInt(SMTP_PORT, 10) === 465, // true for 465, false for others
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: SMTP_USER,
+        pass: SMTP_PASS,
       },
     });
-    console.log("✅ Brevo SMTP transporter initialized successfully");
   }
   return transporter;
 };
@@ -125,6 +126,8 @@ async function fetchPageText(url) {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
       },
+      timeout: 15000,
+      maxRedirects: 5,
     });
     const dom = new JSDOM(data);
     return dom.window.document.body.textContent.replace(/\s\s+/g, " ").trim();
@@ -135,6 +138,7 @@ async function fetchPageText(url) {
 }
 
 async function checkForUpdates(newContent, oldContent) {
+  if (!newContent || !oldContent) return { hasUpdate: false, changes: null };
   const prompt = `You are an intelligent website update detection assistant. Compare the OLD CONTENT with the NEW CONTENT of a webpage. Your goal is to identify if a **significant update** has occurred, like a new software version, a major feature announcement, or a documentation rewrite. **Ignore** minor changes like typo fixes, date updates, or small blog posts. Respond with a JSON object. - If a major update is found, respond with: {"update": true, "changes": "A summary of what changed."} - If no major update is found, respond with: {"update": false, "changes": null} --- OLD CONTENT: ${oldContent.substring(0, 4000)} --- NEW CONTENT: ${newContent.substring(0, 4000)} --- JSON Response:`;
   try {
     const result = await genAI.models.generateContent({
@@ -142,10 +146,7 @@ async function checkForUpdates(newContent, oldContent) {
       contents: prompt,
     });
 
-    // Fix the JSON cleaning logic
-    let jsonText = result.text.trim();
-    console.log("Raw Gemini response:", jsonText);
-
+    let jsonText = result.text?.trim() || "";
     // Remove markdown code blocks if present
     if (jsonText.includes("```")) {
       jsonText = jsonText
@@ -153,12 +154,15 @@ async function checkForUpdates(newContent, oldContent) {
         .replace(/```/g, "")
         .trim();
     }
-
-    console.log("Cleaned JSON:", jsonText);
-
+    // Remove leading/trailing non-JSON text
+    const firstBrace = jsonText.indexOf("{");
+    const lastBrace = jsonText.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1) {
+      jsonText = jsonText.substring(firstBrace, lastBrace + 1);
+    }
     const parsed = JSON.parse(jsonText);
     return {
-      hasUpdate: parsed.update || false,
+      hasUpdate: !!parsed.update,
       changes: parsed.changes || null,
     };
   } catch (error) {
@@ -167,26 +171,9 @@ async function checkForUpdates(newContent, oldContent) {
   }
 }
 
-// async function sendUpdateEmail(userEmail, linkUrl, linkTitle, changes) {
-//   const mailOptions = {
-//     from: ` GMAIL_EMAIL}>`,
-//     to: userEmail,
-//     subject: `SnapLink Update: '${linkTitle}' has changed!`,
-//     html: `<div style="font-family: Arial, sans-serif; line-height: 1.6;"><h2>Hey there!</h2><p>We noticed a significant update to one of your saved links:</p><p><strong><a href="${linkUrl}" target="_blank">${linkTitle}</a></strong></p><hr><h3>Here's what changed:</h3><p style="background-color: #f4f4f4; padding: 15px; border-radius: 5px;"><em>${changes}</em></p><p>Happy linking!</p><p><em>The SnapLink Team</em></p></div>`,
-//   };
-//   try {
-//     await transporter.sendMail(mailOptions);
-//     console.log(`[Monitor] Update email sent to ${userEmail} for link ${linkUrl}`);
-//   } catch (error) {
-//     console.error(`[Monitor] Failed to send email to ${userEmail}:`, error);
-//   }
-// }
-
 const sendUpdateEmail = async (userEmail, linkUrl, linkTitle, changes) => {
   try {
-    console.log("🚀 Sending update email with Brevo SMTP...");
-    console.log("📧 To:", userEmail, "Link:", linkUrl, "Title:", linkTitle);
-    const gmailTransporter = createTransporter();
+    const smtpTransporter = createTransporter();
     const mailOptions = {
       from: {
         name: "SnapLink Updates",
@@ -196,7 +183,7 @@ const sendUpdateEmail = async (userEmail, linkUrl, linkTitle, changes) => {
       subject: `SnapLink Update: '${linkTitle}' has changed!`,
       html: `<div style="font-family: Arial, sans-serif; line-height: 1.6;"><h2>Hey there!</h2><p>We noticed a significant update to one of your saved links:</p><p><strong><a href="${linkUrl}" target="_blank">${linkTitle}</a></strong></p><hr><h3>Here's what changed:</h3><p style="background-color: #f4f4f4; padding: 15px; border-radius: 5px;"><em>${changes}</em></p><p>Happy linking!</p><p><em>The SnapLink Team</em></p></div>`,
     };
-    const result = await gmailTransporter.sendMail(mailOptions);
+    const result = await smtpTransporter.sendMail(mailOptions);
     console.log("✅ Update email sent successfully:", result.messageId);
     return { success: true, messageId: result.messageId };
   } catch (error) {
@@ -253,26 +240,19 @@ async function processSingleLink(link, LinkModel) {
 
 // --- VERCEL SERVERLESS HANDLER ---
 export default async function handler(request, response) {
-  if (request.headers.authorization !== `Bearer ${CRON_SECRET}`) {
+  if (
+    !request.headers.authorization ||
+    request.headers.authorization !== `Bearer ${CRON_SECRET}`
+  ) {
     return response.status(401).json({ message: "Unauthorized" });
   }
 
   try {
-    await mongoose.connect(MONGODB_URI);
+    await mongoose.connect(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
     console.log("MongoDB connected for cron job.");
-
-    // ===================================================================
-    //  DEBUGGING LOGS
-    // ===================================================================
-    const dbName = mongoose.connection.db.databaseName;
-    console.log(`Connected to database: "${dbName}"`);
-
-    const collections = await mongoose.connection.db
-      .listCollections()
-      .toArray();
-    const collectionNames = collections.map((c) => c.name);
-    console.log("Available collections:", collectionNames);
-    // ===================================================================
 
     const Link = mongoose.models.Link || mongoose.model("Link", linkSchema);
     const User = mongoose.models.User || mongoose.model("User", userSchema);
@@ -301,3 +281,4 @@ export default async function handler(request, response) {
     return response.status(500).json({ message: "An error occurred." });
   }
 }
+// ...existing code...
